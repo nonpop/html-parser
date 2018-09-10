@@ -134,10 +134,21 @@ attributeTests =
         ]
 
 
+selfClosingTests : Test
+selfClosingTests =
+    describe "Self-closing tags"
+        [ test "br, no closing" (testParse """<br>""" (Element "br" [] []))
+        , test "br, no space before closing" (testParse """<br/>""" (Element "br" [] []))
+        , test "br, with space before closing" (testParse """<br />""" (Element "br" [] []))
+        ]
+
+
 errorTests : Test
 errorTests =
     describe "Errors"
-        [ test "invalid closing tag" (testError "<a><br></p>") ]
+        [ test "invalid closing tag" (testError "<a><br></p>")
+        , test "self-closing non-void tag" (testError "<p/>")
+        ]
 
 
 suite : Test
@@ -147,6 +158,7 @@ suite =
         , nodeTests
         , commentTests
         , attributeTests
+        , selfClosingTests
         , errorTests
 
         --, scriptTests

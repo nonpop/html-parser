@@ -112,11 +112,22 @@ tag =
         |. Parser.chompIf ((==) '<')
         |= tagNameAndAttributes
         |. Parser.chompWhile isSpaceCharacter
-        |. Parser.chompIf ((==) '>')
         |> Parser.andThen
             (\( name, attributes ) ->
+                Parser.oneOf
+                    [ Parser.chompIf ((==) '/')
+                        |> Parser.andThen (\_ -> Parser.succeed { name = name, attributes = attributes, selfCloses = True })
+                    , Parser.succeed { name = name, attributes = attributes, selfCloses = False }
+                    ]
+                    |. Parser.chompIf ((==) '>')
+            )
+        |> Parser.andThen
+            (\{ name, attributes, selfCloses } ->
                 if isVoidElement name then
                     Parser.succeed (Element name attributes [])
+
+                else if selfCloses then
+                    Parser.problem "Only void tags can be self-closed"
 
                 else
                     Parser.succeed (Element name attributes)
